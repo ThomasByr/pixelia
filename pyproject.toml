@@ -1,0 +1,129 @@
+[build-system]
+requires      = ["hatchling", "hatch-requirements-txt"]
+build-backend = "hatchling.build"
+
+[project]
+name = "PixelIA"
+authors = [{ name = "ThomasByr", email = "tbouyer2000@gmail.com" }]
+description = "Image creation and processing Discord bot"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Operating System :: OS Independent",
+]
+dynamic = ["dependencies", "optional-dependencies", "version"]
+
+# ------------------------------------------------------------------------------
+
+[tool.isort]
+profile = "black"
+
+# ------------------------------------------------------------------------------
+
+[tool.ruff]
+# Enable the pycodestyle (`E`) and Pyflakes (`F`) rules by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+
+# Enable flake8-bugbear (`B`) rules, in addition to the defaults.
+lint.select = ["E", "F", "B"]
+lint.ignore = ["E501"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+lint.fixable   = ["ALL"]
+lint.unfixable = ["B"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hatch",
+  ".hg",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "venv",
+]
+
+# Same as Black.
+line-length = 110
+
+# Allow unused variables when underscore-prefixed.
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Assume Python 3.10
+target-version = "py310"
+
+# Ignore `E402` (import violations) in all `__init__.py` files
+[tool.ruff.lint.per-file-ignores]
+"__init__.py"             = ["E402", "F403"]
+"**/{tests,docs,tools}/*" = ["E402"]
+
+[tool.ruff.lint.flake8-quotes]
+docstring-quotes = "double"
+
+# ------------------------------------------------------------------------------
+
+[tool.black]
+line-length    = 110
+target-version = ['py311']
+include        = '\.pyi?$'
+
+# ------------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts    = "-ra -q"
+testpaths  = ["tests", "integration"]
+
+# ------------------------------------------------------------------------------
+
+[tool.hatch.version]
+path = "src/version.py"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
+
+[tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
+dev = ["requirements-dev.txt"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [".github", "docs"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[project.urls]
+Documentation = "https://github.com/ThomasByr/pixelia/wiki"
+Issues        = "https://github.com/ThomasByr/pixelia/issues"
+Source        = "https://github.com/ThomasByr/pixelia"
+
+[tool.hatch.envs.dev]
+path     = ".hatch"
+features = ["dev"]
+
+[tool.hatch.envs.dev.scripts]
+test  = "python -m pytest"
+lint  = "python -m ruff ."
+style = "python -m black --check src"
+fmt   = "python -m black src"
+
+check = ["test", "lint", "style"]
