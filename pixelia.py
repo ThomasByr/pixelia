@@ -3,7 +3,7 @@
 
 #! PixelIA - Image creation and processing Discord bot
 #!
-#! Copyright (c) 2024, ThomasByr
+#! Copyright (c) 2024-present, ThomasByr & ThomasD
 #! AGPL-3.0-or-later (https://www.gnu.org/licenses/agpl-3.0.en.html)
 #! All rights reserved.
 #!
