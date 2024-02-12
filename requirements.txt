@@ -1,0 +1,23 @@
+# note : all dependencies are locked to a specific version
+#        to ensure reproducibility of the environment ;
+#        exceptions are made for some minor versions
+
+--extra-index-url https://download.pytorch.org/whl/cu121
+
+termcolor            == 2.3.*       # colored output
+typing-extensions    >= 4.6, < 5.0  # typing_extensions module
+python-dotenv        == 1.0.*       # load environment variables from .env file
+
+alive-progress       == 3.1.*       # for progress bars
+PyYAML               == 6.0.*       # config files
+discord.py           == 2.3.*       # discord bot
+PyNaCl               == 1.5.*       # crypto
+arrow                == 1.3.*       # date and time
+pyjson5              == 1.6.*       # for parsing json5 files
+
+torch                == 2.1.*       # ai framework
+torchvision          == 0.16.*
+torchaudio           == 2.1.*
+
+diffusers[torch]     == 0.26.*
+transformers         == 4.37.*
