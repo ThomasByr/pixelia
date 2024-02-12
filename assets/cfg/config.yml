@@ -1,0 +1,7 @@
+cpu_offload: False
+debug: False
+endpoint: 
+model: runwayml/stable-diffusion-v1-5
+lora_weights: 
+refiner: 
+fp: 16
