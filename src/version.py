@@ -3,7 +3,7 @@
 #
 # PixelIA - Image creation and processing Discord bot
 #
-# Copyright (c) 2024, ThomasByr.
+# Copyright (c) 2024-present, ThomasByr & ThomasD
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
