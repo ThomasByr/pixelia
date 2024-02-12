@@ -1,0 +1,8 @@
+-r requirements.txt
+
+hatch
+pytest
+ruff
+black
+
+huggingface-hub[cli]
