@@ -1,4 +1,5 @@
 import asyncio
+import os
 from threading import Lock
 
 import torch
@@ -39,7 +40,8 @@ class DiffusionModel:
                 self.__base.enable_model_cpu_offload()
             else:
                 self.__base.to("cuda")
-        self.__base.unet = torch.compile(self.__base.unet, mode="reduce-overhead", fullgraph=True)
+        if os.name != "nt":
+            self.__base.unet = torch.compile(self.__base.unet, mode="reduce-overhead", fullgraph=True)
         self.__base.safety_checker = lambda images, **kwargs: (images, [False] * len(images))
         if self.refiner is not None:
             self.__refiner = DiffusionPipeline.from_pretrained(
@@ -55,7 +57,8 @@ class DiffusionModel:
                     self.__refiner.enable_model_cpu_offload()
                 else:
                     self.__refiner.to("cuda")
-            self.__refiner.unet = torch.compile(self.__refiner.unet, mode="reduce-overhead", fullgraph=True)
+            if os.name != "nt":
+                self.__refiner.unet = torch.compile(self.__refiner.unet, mode="reduce-overhead", fullgraph=True)
             self.__refiner.safety_checker = lambda images, **kwargs: (images, [False] * len(images))
 
         self.__n_steps = 40
