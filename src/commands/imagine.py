@@ -7,8 +7,15 @@ from discord.ext import commands
 
 from ..cli import CliArgs
 from ..core.cogs import UsefullCog
+from ..messages import CustomView
 from ..models import DiffusionModel
 from .manage import WhiteListManager
+
+
+class ImagineView(CustomView):
+
+    def __init__(self, orig_inter: discord.Interaction, timeout: int = 180):
+        super().__init__(orig_inter, timeout)
 
 
 class Imagine(UsefullCog):
