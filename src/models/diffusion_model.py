@@ -58,7 +58,9 @@ class DiffusionModel:
                 else:
                     self.__refiner.to("cuda")
             if os.name != "nt":
-                self.__refiner.unet = torch.compile(self.__refiner.unet, mode="reduce-overhead", fullgraph=True)
+                self.__refiner.unet = torch.compile(
+                    self.__refiner.unet, mode="reduce-overhead", fullgraph=True
+                )
             self.__refiner.safety_checker = lambda images, **kwargs: (images, [False] * len(images))
 
         self.__n_steps = 40

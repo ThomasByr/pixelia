@@ -33,5 +33,5 @@ class UsefullCog(commands.GroupCog):
             interaction.user.name,
             interaction.user.discriminator,
             interaction.command.name,
-            interaction.data.items()
+            interaction.data.items(),
         )

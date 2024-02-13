@@ -156,7 +156,7 @@ def check_args(args: Namespace) -> CliArgs:
     # check debug
     if args.debug:
         cli_args.debug = True
-    
+
     # check no warmup
     if args.no_warmup:
         cli_args.no_warmup = True
