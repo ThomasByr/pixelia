@@ -26,12 +26,22 @@ class UsefullCog(commands.GroupCog):
         self.__loaded = True
         self.log.info("%s cog loaded !", self.__class__.__name__)
 
-    def log_interaction(self, interaction: discord.Interaction):
-        self.log.info(
-            "[%s] %s#%s - %s\n%s",
-            interaction.guild.name,
-            interaction.user.name,
-            interaction.user.discriminator,
-            interaction.command.name,
-            interaction.data.items(),
-        )
+    def log_interaction(self, interaction: discord.Interaction, *args, **kwargs):
+        if len(args) == 0 and len(kwargs) == 0:
+            self.log.info(
+                "[%s] %s#%s - %s",
+                interaction.guild.name,
+                interaction.user.name,
+                interaction.user.discriminator,
+                interaction.command.name,
+            )
+        else:
+            self.log.info(
+                "[%s] %s#%s - %s\n%s %s",
+                interaction.guild.name,
+                interaction.user.name,
+                interaction.user.discriminator,
+                interaction.command.name,
+                args,
+                kwargs,
+            )

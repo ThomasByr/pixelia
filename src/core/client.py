@@ -7,10 +7,10 @@ import discord
 from discord.ext import commands
 from typing_extensions import override
 
-from ..messages import Embedder, Dispatcher
-from ..commands import Utils, Imagine, Manage, WhiteListManager
-from ..version import __version__
 from ..cli import CliArgs
+from ..commands import Imagine, Manage, Utils, WhiteListManager
+from ..messages import Dispatcher, Embedder
+from ..version import __version__
 
 __all__ = ["UsefulClient"]
 
@@ -116,8 +116,6 @@ class UsefulClient(commands.AutoShardedBot):
         The frame object.
         """
         print("", end="\r")
-        self.logger.info("Shutting down...")
-        ...
         self.logger.info("Shutdown complete ✅")
         sys.exit(0)
 
