@@ -39,6 +39,7 @@ class CliArgs:
     config: str = os.path.join("assets", "cfg", "config.yml")
     cpu_offload: bool = False
     debug: bool = False
+    no_warmup: bool = False
 
     model: str = None
     lora_weights: str = None
@@ -51,6 +52,7 @@ class CliArgs:
             data = yaml.safe_load(file)
             self.cpu_offload = data.get("cpu_offload", self.cpu_offload)
             self.debug = data.get("debug", self.debug)
+            self.no_warmup = data.get("no_warmup", self.no_warmup)
             self.model = data.get("model", self.model)
             self.lora_weights = data.get("lora_weights", self.lora_weights)
             self.refiner = data.get("refiner", self.refiner)
@@ -61,7 +63,7 @@ def make_parser() -> WeakParser:
     defaults = CliArgs()
     parser = WeakParser(
         description="PixelIA - Image creation and processing Discord bot",
-        epilog="For more information, visit <http://[::1]:80/>.",
+        epilog="For more information, visit <https://github.com/ThomasByr/pixelia>.",
     )
 
     return (
@@ -83,6 +85,11 @@ def make_parser() -> WeakParser:
             "--debug",
             dest="debug",
             help="Run the program in debug mode.",
+        )
+        .with_store_true_argument(
+            "--no-warmup",
+            dest="no_warmup",
+            help="Do not warm up the diffusion model (useful for fast debugging).",
         )
         .with_str_argument(
             "-m",
@@ -149,6 +156,10 @@ def check_args(args: Namespace) -> CliArgs:
     # check debug
     if args.debug:
         cli_args.debug = True
+    
+    # check no warmup
+    if args.no_warmup:
+        cli_args.no_warmup = True
 
     # check model
     if args.model:

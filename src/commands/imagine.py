@@ -26,7 +26,8 @@ class Imagine(UsefullCog):
             cli_args.fp,
         )
         self.whitelist = whitelist
-        asyncio.create_task(self.__model.query("test", "test"))
+        if not cli_args.no_warmup:
+            asyncio.create_task(self.__model.query("test", "test"))
 
     async def __do_check(self, interaction: discord.Interaction) -> bool:
         """Check if the user can use the command and if not, send an error message."""

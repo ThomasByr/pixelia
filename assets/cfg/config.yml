@@ -1,5 +1,6 @@
 cpu_offload: False
 debug: False
+no_warmup: False
 endpoint: 
 model: runwayml/stable-diffusion-v1-5
 lora_weights: 
