@@ -30,7 +30,7 @@ class UsefulClient(commands.AutoShardedBot):
 
         self.embed_builder = Embedder()
         self.dispatcher = Dispatcher()
-        self.whitelist = WhiteListManager()
+        self.whitelist: WhiteListManager = None
         self.started_once = False
 
         self.__invite = invite
@@ -69,6 +69,9 @@ class UsefulClient(commands.AutoShardedBot):
 
     @override
     async def setup_hook(self) -> None:
+        owner_id = (await self.application_info()).owner.id
+        self.whitelist = WhiteListManager(owner_id)
+        self.logger.info("Owner ID: %d", owner_id)
         await self.setup()
         self.logger.info("Messing around ...")
 

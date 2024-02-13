@@ -56,20 +56,32 @@ class WhiteListResultCode(AutoNumberedEnum):
 
 
 class WhiteListManager:
-    def __init__(self, filename: str = "whitelist.json"):
+    def __init__(self, owner_id: int, filename: str = "whitelist.json"):
         self.filename = filename
-        self.__whitelist = self.__load_whitelist()
+        self.__whitelist = self.__load_whitelist(owner_id)
 
     @property
     def whitelist(self) -> list[WhiteListEntry]:
         return self.__whitelist
 
-    def __load_whitelist(self) -> list[WhiteListEntry]:
+    def __load_whitelist(self, owner_id: int) -> list[WhiteListEntry]:
+        should_create = False
         if not os.path.exists(self.filename):
+            should_create = True
+        try:
+            with open(self.filename, "r", encoding="utf-8") as f:
+                return [WhiteListEntry.from_dict(entry) for entry in json.decode_io(f)]
+        except json.Json5DecoderException:
+            should_create = True
+
+        if should_create:
+            entry = WhiteListEntry(owner_id, 3, owner_id, 0)
             with open(self.filename, "w", encoding="utf-8") as f:
-                f.write("[]")
-        with open(self.filename, "r", encoding="utf-8") as f:
-            return [WhiteListEntry.from_dict(entry) for entry in json.decode_io(f)]
+                f.write(json.encode([entry.to_dict()]))
+                
+            return [entry]
+        
+        raise ValueError("Unreachable code")
 
     def __save_whitelist(self):
         with open(self.filename, "w", encoding="utf-8") as f:
