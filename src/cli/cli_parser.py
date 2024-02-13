@@ -95,9 +95,9 @@ def make_parser() -> WeakParser:
             "-m",
             "--model",
             dest="model",
-            help="Hugging Face model name (incompatible with --endpoint).",
+            help="Hugging Face model name (needs to be set).",
         )
-        .with_argument(
+        .with_str_argument(
             "-w",
             "--weights",
             dest="lora_weights",

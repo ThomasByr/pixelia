@@ -166,7 +166,6 @@ class BoardView(CustomView):
         self,
         orig_inter: discord.Integration,
         embed: discord.Embed,
-        client: commands.AutoShardedBot,
         db: WhiteListManager,
         timeout: int | None = 180,
     ):
@@ -179,7 +178,6 @@ class BoardView(CustomView):
         self.items: dict[int, str] = {}
 
         self.__tmp_records: list[WhiteListEntry] = []
-        self.client = client
         self.__db = db
         self.__page = 0
 
@@ -304,7 +302,7 @@ class Manage(UsefullCog):
                 title=f"📊 WhiteList of {interaction.guild.name}",
                 description="...loading...",
             )
-            view = BoardView(interaction, embed, self.client, self.whitelist)
+            view = BoardView(interaction, embed, self.whitelist)
             await self.dispatcher.send_embed_and_view(interaction, embed, view)
 
             embed.description = view.first_page
