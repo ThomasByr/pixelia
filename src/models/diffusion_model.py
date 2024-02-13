@@ -1,10 +1,13 @@
 import asyncio
+import logging
 import os
 from threading import Lock
 
 import torch
 from diffusers import DiffusionPipeline
 from PIL import Image
+
+from ..helper.chrono import ChronoContext
 
 __all__ = ["DiffusionModel"]
 
@@ -19,6 +22,7 @@ class DiffusionModel:
         cpu_offload: bool = False,
         fp: int = 16,
     ):
+        self.logger = logging.getLogger("diffusion_model")
         self.name = name
         self.refiner = refiner
         self.weights = lora_weights
@@ -28,6 +32,8 @@ class DiffusionModel:
         torch_type = torch.float16 if fp == 16 else torch.float32
 
         self.__lock = Lock()
+        self.__counter_lock = Lock()
+        self.__counter = 0
         self.__cuda_available = torch.cuda.is_available()
         self.__refiner = None
         self.__base = DiffusionPipeline.from_pretrained(
@@ -66,6 +72,12 @@ class DiffusionModel:
         self.__n_steps = 40
         self.__high_noise_frac = 0.8
 
+    @property
+    def counter(self) -> int:
+        """Current queue size"""
+        with self.__counter_lock:
+            return self.__counter
+
     def __generate(self, pprompt: str, nprompt: str = None) -> Image.Image:
         images = None
         match self.refiner:
@@ -95,4 +107,15 @@ class DiffusionModel:
 
     async def query(self, pprompt: str, nprompt: str = None) -> Image.Image:
         """Query the model with a positive and negative prompt"""
-        return await asyncio.to_thread(self.__generate, pprompt, nprompt)
+        with self.__counter_lock:
+            self.__counter += 1
+        res = await asyncio.to_thread(self.__generate, pprompt, nprompt)
+        with self.__counter_lock:
+            self.__counter -= 1
+        return res
+
+    async def warmup(self) -> None:
+        """Warmup the model"""
+        with ChronoContext() as cc:
+            await self.query("test")
+        self.logger.info("Warmup took %s", cc.get_formatted_elapsed("%Mm %Ss"))

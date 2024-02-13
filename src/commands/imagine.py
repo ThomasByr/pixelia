@@ -1,12 +1,14 @@
 import asyncio
 import os
-
+from collections.abc import Callable
+from PIL import Image
 import discord
 from discord import app_commands
 from discord.ext import commands
 
 from ..cli import CliArgs
 from ..core.cogs import UsefullCog
+from ..helper.chrono import ChronoContext
 from ..messages import CustomView
 from ..models import DiffusionModel
 from .manage import WhiteListManager
@@ -14,8 +16,49 @@ from .manage import WhiteListManager
 
 class ImagineView(CustomView):
 
-    def __init__(self, orig_inter: discord.Interaction, timeout: int = 180):
+    def __init__(
+        self,
+        orig_inter: discord.Interaction,
+        embed: discord.Embed,
+        model: DiffusionModel,
+        imagine_cog: "Imagine",
+        pprompt: str,
+        nprompt: str = None,
+        __pprompt: str = None,
+        __nprompt: str = None,
+        timeout: int = 180,
+    ):
         super().__init__(orig_inter, timeout)
+        self.with_button_callback("♻️", "redo", "redo", self.__on_redo())
+        self.edit_button("redo", style=discord.ButtonStyle.green)
+
+        self.embed = embed
+        self.model = model
+        self.imagine_cog = imagine_cog
+        self.pprompt = pprompt
+        self.nprompt = nprompt
+        self.__pprompt = __pprompt
+        self.__nprompt = __nprompt
+
+    def __on_redo(self) -> Callable[[discord.Integration], None]:
+
+        async def callback(inter: discord.Interaction) -> None:
+            self.edit_button("redo", disabled=True)
+            await inter.response.defer()
+
+            embed = self.imagine_cog.create_generate_embed(self.model.counter, self.__pprompt, self.__nprompt)
+            await self.imagine_cog.dispatcher.edit_embed_view(self.interaction, embed, self)
+            with ChronoContext() as cc:
+                image = await self.model.query(self.pprompt, self.nprompt)
+
+            self.edit_button("redo", disabled=False)
+            await self.imagine_cog.modify_generate_embed(
+                inter, image, cc.get_formatted_elapsed("%Mm %Ss"), embed, self
+            )
+
+            self.imagine_cog.log_interaction(self.interaction, self.pprompt, self.nprompt)
+
+        return callback
 
 
 class Imagine(UsefullCog):
@@ -34,7 +77,7 @@ class Imagine(UsefullCog):
         )
         self.whitelist = whitelist
         if not cli_args.no_warmup:
-            asyncio.create_task(self.__model.query("test", "test"))
+            asyncio.create_task(self.__model.warmup())
 
     async def __do_check(self, interaction: discord.Interaction) -> bool:
         """Check if the user can use the command and if not, send an error message."""
@@ -76,6 +119,47 @@ class Imagine(UsefullCog):
         await self.dispatcher.reply_with_embed(interaction, embed)
         self.log_interaction(interaction)
 
+    def create_generate_embed(
+        self, currently_in_queue: int, __pprompt: str, __nprompt: str = None
+    ) -> discord.Embed:
+        embed = self.embed_builder.build_response_embed(
+            title="🖼️ Creating your image ...",
+            description="Please wait while I create your image.\n"
+            f"`{currently_in_queue}` job{'s' if currently_in_queue > 1 else ''} currently in queue.",
+        ).add_field(
+            name="Positive prompt",
+            value=f"```txt\n{__pprompt}\n```",
+            inline=False,
+        )
+        if __nprompt is not None:
+            embed.add_field(
+                name="Negative prompt",
+                value=f"```txt\n{__nprompt}\n```",
+                inline=False,
+            )
+
+        return embed
+
+    async def modify_generate_embed(
+        self,
+        interaction: discord.Interaction,
+        image: Image.Image,
+        elapsed: str,
+        embed: discord.Embed,
+        view: ImagineView,
+    ) -> discord.Embed:
+        embed.title = "🖼️ Your image is ready !"
+        embed.description = f"Your image was created in {elapsed}."
+
+        image.save(f"{interaction.id}.png")
+
+        local_file = discord.File(f"{interaction.id}.png", "image.png")
+        # embed.set_image(url=f"attachment://{local_file.filename}")
+        i = await self.dispatcher.edit_embed_view(interaction, embed, view)
+        await self.dispatcher.reply_files(interaction.user, i, [local_file])
+        os.unlink(f"{interaction.id}.png")
+        return embed
+
     async def __generate(
         self,
         interaction: discord.Interaction,
@@ -89,21 +173,17 @@ class Imagine(UsefullCog):
 
         if nprompt is None:
             nprompt = "text, blurry, fuzziness, watermark"
-        embed = self.embed_builder.build_response_embed(
-            title="Creating your image ...",
-            description=f"Please wait while I create your image.\n\n"
-            f"```diff\n+{__pprompt}\n{'' if not __nprompt else '-'+__nprompt}\n```",
-        )
+
+        embed = self.create_generate_embed(self.__model.counter, __pprompt, __nprompt)
         await self.dispatcher.reply_with_embed(interaction, embed)
 
-        image = await self.__model.query(pprompt, nprompt)
-        image.save(f"{interaction.id}.png")
-        await self.dispatcher.send_channel_file(
-            interaction.channel, discord.File(f"{interaction.id}.png", "image.png")
-        )
-        os.unlink(f"{interaction.id}.png")
+        with ChronoContext() as cc:
+            image = await self.__model.query(pprompt, nprompt)
 
-        self.log_interaction(interaction)
+        view = ImagineView(interaction, embed, self.__model, self, pprompt, nprompt, __pprompt, __nprompt)
+        await self.modify_generate_embed(interaction, image, cc.get_formatted_elapsed("%Mm %Ss"), embed, view)
+
+        self.log_interaction(interaction, pprompt, nprompt)
 
     @app_commands.command(name="raw", description="Create an image from a raw positive and negative prompts")
     @app_commands.describe(pprompt="The positive prompt", nprompt="An optional negative prompt")

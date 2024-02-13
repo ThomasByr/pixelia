@@ -34,7 +34,7 @@ class Dispatcher:
         self,
         interaction: discord.Interaction,
         embed: discord.Embed,
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         """
         reply the sender with an embed
 
@@ -50,7 +50,7 @@ class Dispatcher:
 
         ## Returns
         ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
+        Coroutine[Any, Any, discord.InteractionMessage] : the coroutine that sends the embed
         ```
         """
         return self.__send_embed(interaction, embed)
@@ -59,7 +59,7 @@ class Dispatcher:
         self,
         interaction: discord.Interaction,
         embed: discord.Embed,
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         """
         edit the reply with an embed
 
@@ -75,7 +75,7 @@ class Dispatcher:
 
         ## Returns
         ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
+        Coroutine[Any, Any, discord.InteractionMessage] : the coroutine that sends the embed
         ```
         """
         return self.__edit_embed(interaction, embed)
@@ -85,7 +85,7 @@ class Dispatcher:
         interaction: discord.Interaction,
         embed: discord.Embed,
         failed: bool = False,
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         """
         reply the sender with a status embed\\
         will automatically delete the embed after 5 seconds and add a timestamp to the description
@@ -107,7 +107,7 @@ class Dispatcher:
 
         ## Returns
         ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
+        Coroutine[Any, Any, discord.InteractionMessage] : the coroutine that sends the embed
         ```
         """
         s: int = 5
@@ -124,7 +124,7 @@ class Dispatcher:
         interaction: discord.Interaction,
         embed: discord.Embed,
         failed: bool = False,
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         """
         send a status embed\\
         will automatically delete the embed after 5 seconds and add a timestamp to the description
@@ -146,7 +146,7 @@ class Dispatcher:
 
         ## Returns
         ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
+        Coroutine[Any, Any, discord.InteractionMessage] : the coroutine that sends the embed
         ```
         """
         s: int = 2
@@ -164,7 +164,7 @@ class Dispatcher:
         interaction: discord.Interaction,
         embed: discord.Embed,
         view: discord.ui.View,
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         """
         send a poll embed
 
@@ -184,7 +184,7 @@ class Dispatcher:
 
         ## Returns
         ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
+        Coroutine[Any, Any, discord.InteractionMessage] : the coroutine that sends the embed
         ```
         """
         return interaction.response.send_message(embed=embed, view=view)
@@ -193,7 +193,7 @@ class Dispatcher:
         self,
         interaction: discord.Interaction,
         embed: discord.Embed,
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         """
         send a poll followup embed
 
@@ -209,52 +209,68 @@ class Dispatcher:
 
         ## Returns
         ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
+        Coroutine[Any, Any, discord.InteractionMessage] : the coroutine that sends the embed
         ```
         """
         return interaction.followup.send(embed=embed, ephemeral=True)
+
+    def reply_files(
+        self,
+        user: discord.User,
+        interaction: discord.InteractionMessage,
+        files: list[discord.File],
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
+        return interaction.reply(content=user.mention, files=files)
 
     def send_embed_and_view(
         self,
         interaction: discord.Interaction,
         embed: discord.Embed,
         view: discord.ui.View,
-    ) -> Coroutine[Any, Any, None]:
-        """
-        send an embed and a view
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
 
-        ## Parameters
-        ```py
-        >>> interaction : discord.Interaction
-        ```
-        original interaction
-        ```py
-        >>> embed : discord.Embed
-        ```
-        embed to send
-        ```py
-        >>> view : discord.ui.View
-        ```
-        view to send
-
-        ## Returns
-        ```py
-        Coroutine[Any, Any, None] : the coroutine that sends the embed
-        ```
-        """
         return interaction.response.send_message(embed=embed, view=view)
 
-    def send_channel_message(self, channel: discord.TextChannel, message: str) -> Coroutine[Any, Any, None]:
+    def send_embed_view_and_files(
+        self,
+        interaction: discord.Interaction,
+        embed: discord.Embed,
+        view: discord.ui.View,
+        files: list[discord.File],
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
+
+        return interaction.response.send_message(embed=embed, view=view, files=files)
+
+    def edit_embed_view(
+        self,
+        interaction: discord.Interaction,
+        embed: discord.Embed,
+        view: discord.ui.View,
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
+
+        return interaction.edit_original_response(embed=embed, view=view)
+
+    def edit_embed_view_and_files(
+        self,
+        interaction: discord.Interaction,
+        embed: discord.Embed,
+        view: discord.ui.View,
+        files: list[discord.File],
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
+
+        return interaction.edit_original_response(embed=embed, view=view, attachments=files)
+
+    def send_channel_message(self, channel: discord.TextChannel, message: str) -> Coroutine[Any, Any, discord.InteractionMessage]:
         return channel.send(message)
 
     def edit_channel_message(
         self, channel: discord.TextChannel, message: str, msg_id: int
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         return channel.edit_message(message, msg_id)
 
     def send_channel_file(
         self, channel: discord.TextChannel, file: discord.File
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         return channel.send(file=file)
 
     async def await_channel_file(
@@ -266,5 +282,5 @@ class Dispatcher:
 
     def send_channel_event(
         self, channel: discord.TextChannel, embed: discord.Embed, content: str = None
-    ) -> Coroutine[Any, Any, None]:
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         return channel.send(content=content or "", embed=embed)
