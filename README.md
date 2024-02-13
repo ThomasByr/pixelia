@@ -42,6 +42,12 @@ conda activate pixelia
 # pip install --upgrade -r requirements.txt
 ```
 
+Then create a `.env` file following the `.env.example` file, and fill it with your own values.
+
+```bash
+cp .env.example .env
+```
+
 Finally, run the discord bot with :
 
 ```bash
