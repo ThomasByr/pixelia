@@ -18,7 +18,7 @@ __all__ = ["Manage", "WhiteListEntry", "WhiteListManager", "WhiteListResultCode"
 @dataclass
 class WhiteListEntry:
     user_id: int
-    perms: int  # 1 = use, 2 = add, 3 = remove
+    perms: int  # 1 = use, 2 = use + add/remove 1, 3 = use + add/remove 1 + add/remove 2
     by: int
     date: float
 
@@ -33,7 +33,7 @@ class WhiteListEntry:
 class WhiteListResultCode(AutoNumberedEnum):
     # the user that made the command to add another user
     ASKING_USER_NOT_FOUND = ()
-    ASKING_USER_NOT_PERMITTED = ()
+    OPERATION_NOT_PERMITTED = ()
 
     # the user that is being added
     USER_ALREADY_WHITELISTED = ()
@@ -78,9 +78,9 @@ class WhiteListManager:
             entry = WhiteListEntry(owner_id, 3, owner_id, 0)
             with open(self.filename, "w", encoding="utf-8") as f:
                 f.write(json.encode([entry.to_dict()]))
-                
+
             return [entry]
-        
+
         raise ValueError("Unreachable code")
 
     def __save_whitelist(self):
@@ -94,6 +94,13 @@ class WhiteListManager:
     def __remove_entry(self, user_id: int):
         self.__whitelist = [entry for entry in self.whitelist if entry.user_id != user_id]
         self.__save_whitelist()
+
+    def __update_entry(self, entry: WhiteListEntry):
+        for i, e in enumerate(self.whitelist):
+            if e.user_id == entry.user_id:
+                self.whitelist[i] = entry
+                self.__save_whitelist()
+                return
 
     def get_entry(self, user_id: int) -> WhiteListEntry | None:
         for entry in self.whitelist:
@@ -109,8 +116,8 @@ class WhiteListManager:
         manager_entry = self.get_entry(by)
         if manager_entry is None:
             return WhiteListResultCode.ASKING_USER_NOT_FOUND
-        if manager_entry.perms < 2 or (perms >= manager_entry.perms and manager_entry.perms < 3):
-            return WhiteListResultCode.ASKING_USER_NOT_PERMITTED
+        if manager_entry.perms < 2 or (perms > manager_entry.perms):
+            return WhiteListResultCode.OPERATION_NOT_PERMITTED
 
         user_entry = self.get_entry(user_id)
         if user_entry is not None:
@@ -122,14 +129,12 @@ class WhiteListManager:
         manager_entry = self.get_entry(by)
         if manager_entry is None:
             return WhiteListResultCode.ASKING_USER_NOT_FOUND
-        if manager_entry.perms < 3:
-            return WhiteListResultCode.ASKING_USER_NOT_PERMITTED
 
         user_entry = self.get_entry(user_id)
         if user_entry is None:
             return WhiteListResultCode.USER_NOT_WHITELISTED
-        if user_entry.perms == 3:
-            return WhiteListResultCode.ASKING_USER_NOT_PERMITTED
+        if manager_entry.perms < user_entry.perms or manager_entry.perms < 2:
+            return WhiteListResultCode.OPERATION_NOT_PERMITTED
         self.__remove_entry(user_id)
         return WhiteListResultCode.USER_REMOVED
 
@@ -137,21 +142,19 @@ class WhiteListManager:
         manager_entry = self.get_entry(by)
         if manager_entry is None:
             return WhiteListResultCode.ASKING_USER_NOT_FOUND
-        if manager_entry.perms < 2 or (perms >= manager_entry.perms and manager_entry.perms < 3):
-            return WhiteListResultCode.ASKING_USER_NOT_PERMITTED
 
         user_entry = self.get_entry(user_id)
         if user_entry is None:
             return WhiteListResultCode.USER_NOT_FOUND
-        if user_entry.perms == 3:
-            return WhiteListResultCode.ASKING_USER_NOT_PERMITTED
-        else:
-            if manager_entry.perms < user_entry.perms:
-                return WhiteListResultCode.ASKING_USER_NOT_PERMITTED
+        if manager_entry.perms < user_entry.perms or manager_entry.perms < 2:
+            return WhiteListResultCode.OPERATION_NOT_PERMITTED
+        if perms > manager_entry.perms:
+            return WhiteListResultCode.OPERATION_NOT_PERMITTED
+
         user_entry.perms = perms
         user_entry.by = by
         user_entry.date = date
-        self.__save_whitelist()
+        self.__update_entry(user_entry)
         return WhiteListResultCode.USER_PERMS_UPDATED
 
 
@@ -332,9 +335,9 @@ class Manage(UsefullCog):
     @app_commands.describe(user="The user to add", permission="The permission level to give to the user")
     @app_commands.choices(
         permission=[
-            app_commands.Choice(name="Use", value=1),
-            app_commands.Choice(name="Add", value=2),
-            app_commands.Choice(name="Remove", value=3),
+            app_commands.Choice(name="User (1)", value=1),
+            app_commands.Choice(name="Modo (2)", value=2),
+            app_commands.Choice(name="Sudo (4)", value=3),
         ]
     )
     async def add(
@@ -446,9 +449,9 @@ class Manage(UsefullCog):
     )
     @app_commands.choices(
         permission=[
-            app_commands.Choice(name="Use", value=1),
-            app_commands.Choice(name="Add", value=2),
-            app_commands.Choice(name="Remove", value=3),
+            app_commands.Choice(name="User (1)", value=1),
+            app_commands.Choice(name="Modo (2)", value=2),
+            app_commands.Choice(name="Sudo (3)", value=3),
         ]
     )
     async def update(
