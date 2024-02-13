@@ -335,7 +335,7 @@ class Manage(UsefullCog):
         permission=[
             app_commands.Choice(name="User (1)", value=1),
             app_commands.Choice(name="Modo (2)", value=2),
-            app_commands.Choice(name="Sudo (4)", value=3),
+            app_commands.Choice(name="Sudo (3)", value=3),
         ]
     )
     async def add(

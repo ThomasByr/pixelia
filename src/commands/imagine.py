@@ -43,6 +43,9 @@ class ImagineView(CustomView):
     def __on_redo(self) -> Callable[[discord.Integration], None]:
 
         async def callback(inter: discord.Interaction) -> None:
+            if not await self.imagine_cog.do_check(inter):
+                return
+
             self.edit_button("redo", disabled=True)
             await inter.response.defer()
 
@@ -79,7 +82,7 @@ class Imagine(UsefullCog):
         if not cli_args.no_warmup:
             asyncio.create_task(self.__model.warmup())
 
-    async def __do_check(self, interaction: discord.Interaction) -> bool:
+    async def do_check(self, interaction: discord.Interaction) -> bool:
         """Check if the user can use the command and if not, send an error message."""
         can_use = self.whitelist.can_use_imagine(interaction.user.id)
 
@@ -168,7 +171,7 @@ class Imagine(UsefullCog):
         __pprompt: str = None,
         __nprompt: str = None,
     ):
-        if not await self.__do_check(interaction):
+        if not await self.do_check(interaction):
             return
 
         if nprompt is None:
