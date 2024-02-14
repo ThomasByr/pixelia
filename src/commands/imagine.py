@@ -195,11 +195,12 @@ class Imagine(UsefullCog):
 
     @app_commands.command(name="realistic", description="Create a realistic image from a prompt")
     async def realistic(self, interaction: discord.Interaction, prompt: str):
+        pprompt = f"{prompt}, photo-realistic, high resolution, detailed, textures, high quality, high definition"
         nprompt = (
-            "locality, ugly, noise, blur, low resolution, text, worst quality, "
-            "deformed, deformed eyes, out of focus, monochrome, anthropomorphic, watermark"
+            "text, blur, deformed, black and white, strange proportions, locality, ugly, noise, "
+            "low resolution, no details, no textures, watermark, multiple bodies, painting, fade, pastel colors"
         )
-        await self.__generate(interaction, f"{prompt}", nprompt, prompt)
+        await self.__generate(interaction, pprompt, nprompt, prompt)
 
     @app_commands.command(name="logo", description="Create a logo from a prompt")
     async def logo(self, interaction: discord.Interaction, prompt: str):
