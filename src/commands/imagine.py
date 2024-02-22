@@ -157,8 +157,9 @@ class Imagine(UsefullCog):
         image.save(f"{interaction.id}.png")
 
         local_file = discord.File(f"{interaction.id}.png", "image.png")
-        # embed.set_image(url=f"attachment://{local_file.filename}")
-        i = await self.dispatcher.edit_embed_view(interaction, embed, view)
+        embed.set_thumbnail(url=f"attachment://{local_file.filename}")
+        i = await self.dispatcher.edit_embed_view(interaction, embed, view, [local_file])
+        local_file = discord.File(f"{interaction.id}.png", "image.png")
         await self.dispatcher.reply_files(interaction.user, i, [local_file])
         os.unlink(f"{interaction.id}.png")
         return embed
@@ -195,14 +196,11 @@ class Imagine(UsefullCog):
 
     @app_commands.command(name="realistic", description="Create a realistic image from a prompt")
     async def realistic(self, interaction: discord.Interaction, prompt: str):
-        pprompt = f"{prompt}, photography, realistic, detailed, high resolution, high quality"
+        pprompt = f"{prompt}, photography, realistic, detailed, high resolution, high quality, textures"
         nprompt = (
-            "text, blur, deformed, black and white, strange proportions, locality, ugly, noise, "
-            "poorly Rendered face, poorly drawn face, poor facial details, poorly drawn hands, poorly rendered hands, "
-            "oversaturated, bad anatomy,  missing limbs, error, out of frame, extra fingers, mutated hands, "
-            "poorly drawn hands, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck, "
-            "low resolution, no details, no textures, watermark, multiple bodies, painting, fade, "
-            "pastel colors, signature, username, error"
+            "text, blur, deformed, black and white, cut body, only body, no head, deformed head, "
+            "strange proportions, uneven eyes, deformed hands, deformed toes, strange, ugly, low resolution, "
+            "no details, no textures, watermark, multiple bodies, painting, fade, pastel colors"
         )
         await self.__generate(interaction, pprompt, nprompt, prompt)
 
