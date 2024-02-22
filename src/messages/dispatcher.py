@@ -246,8 +246,11 @@ class Dispatcher:
         interaction: discord.Interaction,
         embed: discord.Embed,
         view: discord.ui.View,
+        files: list[discord.File] = None,
     ) -> Coroutine[Any, Any, discord.InteractionMessage]:
 
+        if files is not None and len(files) > 0:
+            return interaction.edit_original_response(embed=embed, view=view, attachments=files)
         return interaction.edit_original_response(embed=embed, view=view)
 
     def edit_embed_view_and_files(
@@ -260,7 +263,9 @@ class Dispatcher:
 
         return interaction.edit_original_response(embed=embed, view=view, attachments=files)
 
-    def send_channel_message(self, channel: discord.TextChannel, message: str) -> Coroutine[Any, Any, discord.InteractionMessage]:
+    def send_channel_message(
+        self, channel: discord.TextChannel, message: str
+    ) -> Coroutine[Any, Any, discord.InteractionMessage]:
         return channel.send(message)
 
     def edit_channel_message(
