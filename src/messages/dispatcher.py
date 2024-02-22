@@ -249,7 +249,7 @@ class Dispatcher:
         files: list[discord.File] = None,
     ) -> Coroutine[Any, Any, discord.InteractionMessage]:
 
-        if files is not None and len(files) > 0:
+        if files is not None:
             return interaction.edit_original_response(embed=embed, view=view, attachments=files)
         return interaction.edit_original_response(embed=embed, view=view)
 

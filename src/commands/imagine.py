@@ -50,7 +50,7 @@ class ImagineView(CustomView):
             await inter.response.defer()
 
             embed = self.imagine_cog.create_generate_embed(self.model.counter, self.__pprompt, self.__nprompt)
-            await self.imagine_cog.dispatcher.edit_embed_view(self.interaction, embed, self)
+            await self.imagine_cog.dispatcher.edit_embed_view(self.interaction, embed, self, [])
             with ChronoContext() as cc:
                 image = await self.model.query(self.pprompt, self.nprompt)
 
