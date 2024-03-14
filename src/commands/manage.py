@@ -68,10 +68,11 @@ class WhiteListManager:
         should_create = False
         if not os.path.exists(self.filename):
             should_create = True
+
         try:
             with open(self.filename, "r", encoding="utf-8") as f:
                 return [WhiteListEntry.from_dict(entry) for entry in json.decode_io(f)]
-        except json.Json5DecoderException:
+        except (FileNotFoundError, json.Json5DecoderException):
             should_create = True
 
         if should_create:
